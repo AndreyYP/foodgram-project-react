@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from rest_framework.exceptions import ValidationError
 
 
 class User(AbstractUser):
@@ -74,3 +75,31 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class UserFollow(models.Model):
+    user = models.ForeignKey(
+        User,
+        related_name='follower',
+        verbose_name='Подписчик',
+        on_delete=models.CASCADE
+    )
+    author = models.ForeignKey(
+        User,
+        related_name='followed',
+        verbose_name='Автор',
+        on_delete=models.CASCADE
+    )
+
+    def save(self, **kwargs):
+        if self.user == self.author:
+            raise ValidationError("Невозможно подписаться на самого себя")
+        super().save()
+
+    def __str__(self):
+        return f'Автор: {self.author}, подписчик: {self.user}'
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        unique_together = ('user', 'author')
