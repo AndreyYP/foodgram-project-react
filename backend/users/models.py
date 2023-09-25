@@ -18,9 +18,8 @@ class User(AbstractUser):
     )
     email = models.EmailField(
         verbose_name="Почта",
-        blank=True,
         unique=True,
-        max_length=150,
+        max_length=254,
         error_messages={
             'unique': ('Email уже используется'),
         },
@@ -38,14 +37,14 @@ class User(AbstractUser):
     first_name = models.CharField(
         verbose_name=('Имя'),
         max_length=150,
-        blank=True,
         help_text=('Укажите свое имя'),
+        blank=True
     )
     last_name = models.CharField(
         verbose_name=('Фамилия'),
         max_length=150,
-        blank=True,
         help_text=('Укажите свою фамилию'),
+        blank=True
     )
     password = models.CharField(
         verbose_name=('Пароль'),
@@ -53,8 +52,9 @@ class User(AbstractUser):
         help_text=('Введите пароль'),
     )
     is_active = models.BooleanField(default=True)
-
-    REQUIRED_FIELDS = ["first_name", 'password']
+    is_staff = models.BooleanField(default=False)
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
 
     @property
     def is_administrator(self):
