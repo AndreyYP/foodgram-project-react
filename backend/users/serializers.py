@@ -17,6 +17,18 @@ class UsersSerializer(UserSerializer):
 
 
 class UserFollowSerializer(serializers.ModelSerializer):
+    #recipes = serializers.SerializerMethodField()
+#
+    #class Meta:
+    #    """
+    #    Мета параметры сериализатора списка подписок.
+    #    """
+    #    model = User
+    #    fields = ('email', 'id', 'username', 'first_name',
+    #              'last_name', 'is_subscribed', 'recipes', 'recipes_count')
+    follower = UserSerializer()
+    followed = UserSerializer()
+
     class Meta:
         model = UserFollow
         fields = ('follower', 'followed')
