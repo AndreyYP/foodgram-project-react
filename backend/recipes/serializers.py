@@ -7,6 +7,15 @@ from recipes.models import Recipe, Tag, Ingredient
 
 
 class RecipeSerializer(serializers.ModelSerializer):
+    # autoadd author field for current user
+    author = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+    ingredients = serializers.SlugRelatedField(
+        many=True,
+        slug_field='name',
+        queryset=Ingredient.objects.all(),
+        required=True
+    )
+
     class Meta:
         model = Recipe
         fields = [
@@ -26,7 +35,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ['id', 'name', 'color', 'slug']
+        fields = ['id', 'name', 'color_code', 'slug']
 
 
 class IngredientSerializer(serializers.ModelSerializer):

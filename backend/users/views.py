@@ -31,7 +31,7 @@ class UsersViewSet(UserViewSet):
             try:
                 subscription = UserFollow.objects.get(user=request.user, author=followed_user)
             except UserFollow.DoesNotExist:
-                return Response({'detail': 'You are not subscribed to this user.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'detail': 'Вы не подписаны на этого пользователя'}, status=status.HTTP_400_BAD_REQUEST)
             subscription.delete()
             return Response({'status': 'unsubscribed'}, status=status.HTTP_204_NO_CONTENT)
 

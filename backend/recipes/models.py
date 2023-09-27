@@ -1,6 +1,5 @@
 from django.core.validators import RegexValidator
 from django.db import models
-from django.contrib.auth.models import User
 from django.conf import settings
 
 
@@ -46,4 +45,4 @@ class Ingredient(models.Model):
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey('Recipe', on_delete=models.CASCADE)
     ingredient = models.ForeignKey('Ingredient', on_delete=models.CASCADE)
-    measurement_unit = models.CharField(max_length=20)
+    measurement_unit = models.CharField(max_length=200)

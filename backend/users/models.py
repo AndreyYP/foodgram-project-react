@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from rest_framework.exceptions import ValidationError
 
+from recipes.models import Recipe
+
 
 class User(AbstractUser):
     """Модель для пользователя."""
@@ -52,6 +54,7 @@ class User(AbstractUser):
         max_length=150,
         help_text=('Введите пароль'),
     )
+    shopping_cart = models.ManyToManyField(Recipe, blank=True, related_name='carts')
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     USERNAME_FIELD = 'email'
