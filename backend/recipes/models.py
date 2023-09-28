@@ -17,13 +17,18 @@ class Recipe(models.Model):
     is_favorited = models.BooleanField(default=False)
     is_in_shopping_cart = models.BooleanField(default=False)
 
+    pub_date = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
         return self.name
+
+    class Meta:
+        ordering = ('-pub_date',)
 
 
 class Tag(models.Model):
     name = models.CharField(max_length=200, unique=True)
-    color_code = models.CharField(max_length=7, null=True)
+    color = models.CharField(max_length=7, null=True)
     slug = models.SlugField(unique=True,
                             max_length=200,
                             validators=[RegexValidator(
@@ -37,6 +42,7 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     name = models.CharField(max_length=200)
     measurement_unit = models.CharField(max_length=200)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1)
 
     def __str__(self):
         return self.name
@@ -46,3 +52,4 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey('Recipe', on_delete=models.CASCADE)
     ingredient = models.ForeignKey('Ingredient', on_delete=models.CASCADE)
     measurement_unit = models.CharField(max_length=200)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2)

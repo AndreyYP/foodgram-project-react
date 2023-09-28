@@ -6,8 +6,6 @@ from recipes.models import Recipe
 
 
 class User(AbstractUser):
-    """Модель для пользователя."""
-
     USER = "user"
     MODERATOR = "moderator"
     ADMIN = "admin"
@@ -55,8 +53,14 @@ class User(AbstractUser):
         help_text=('Введите пароль'),
     )
     shopping_cart = models.ManyToManyField(Recipe, blank=True, related_name='carts')
+    favorites = models.ManyToManyField(
+        Recipe,
+        blank=True,
+        related_name='favorite',
+    )
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 

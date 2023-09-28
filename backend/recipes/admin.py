@@ -1,17 +1,20 @@
 from django.contrib import admin
-from .models import Recipe, Ingredient, Tag
+from django.db.models import Count
+
+from recipes.models import Recipe, Ingredient, Tag
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author', 'cooking_time_minutes')
+    list_display = ('name', 'author', 'cooking_time_minutes', 'favorited_count')
     list_filter = ('author', 'tags__name', 'name')
     search_fields = ('name', 'author__username')
 
-    # на странице рецепта вывести общее число добавлений этого рецепта в избранное;
-    #def total_favorites(self, obj):
-    #    return obj.favorited_by.count()
-#
-    #total_favorites.short_description = 'Total Favorites'
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(favorited_count=Count('favorite'))
+
+    def favorited_count(self, obj):
+        return obj.favorited_count
+    favorited_count.short_description = 'Favorites Count'
 
 
 class IngredientAdmin(admin.ModelAdmin):
@@ -20,8 +23,12 @@ class IngredientAdmin(admin.ModelAdmin):
 
 
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('name', 'color_code', 'slug')
+    list_display = ('name', 'color', 'slug')
     list_filter = ('name',)
+
+
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('user', 'recipe')
 
 
 admin.site.register(Tag, TagAdmin)

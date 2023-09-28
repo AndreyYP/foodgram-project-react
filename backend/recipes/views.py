@@ -1,10 +1,13 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
+from django.http import HttpResponse
+from collections import defaultdict
 
-from .models import Recipe, Tag, Ingredient
+from .models import Recipe, Tag, Ingredient, RecipeIngredient
 from .serializers import RecipeSerializer, TagSerializer, IngredientSerializer
 
 
@@ -12,6 +15,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        queryset = Recipe.objects.all()
+        tag_ids = self.request.query_params.getlist('tags')
+        if tag_ids:
+            tags = get_object_or_404(Tag, id__in=tag_ids)
+            queryset = queryset.filter(tags__in=tags)
+        return queryset
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -41,7 +52,48 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-
+    """Favorites"""
+    @action(detail=True, methods=['post', 'delete'], url_path='favorite')
+    def toggle_favorite(self, request, pk=None):
+        recipe = self.get_object()
+        user = request.user
+        tag_ids = request.query_params.getlist('tags')
+        if tag_ids:
+            tags = get_object_or_404(Tag, id__in=tag_ids)
+            favorite_recipes = user.favorites.filter(tags__in=tags)
+        else:
+            favorite_recipes = user.favorites.all()
+        if request.method == 'POST':
+            if favorite_recipes.filter(pk=recipe.pk).exists():
+                return Response({'detail': 'Рецепт уже в избранном'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            user.favorites.add(recipe)
+            serializer = self.get_serializer(recipe)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        elif request.method == 'DELETE':
+            if favorite_recipes.filter(pk=recipe.pk).exists():
+                user.favorites.remove(recipe)
+                return Response({'detail': 'Рецепт удален из избранного'},
+                                status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response({'detail': 'Рецепт отсутствует в избранном, нечего удалять'},
+                                status=status.HTTP_400_BAD_REQUEST)
+        #if request.method == 'POST':
+        #    if user.favorites.filter(pk=recipe.pk).exists():
+        #        return Response({'detail': 'Рецепт уже в избранном'},
+        #                        status=status.HTTP_400_BAD_REQUEST)
+        #    user.favorites.add(recipe)
+        #    serializer = self.get_serializer(recipe)
+        #    return Response(serializer.data, status=status.HTTP_200_OK)
+        #elif request.method == 'DELETE':
+        #    if user.favorites.filter(pk=recipe.pk).exists():
+        #        user.favorites.remove(recipe)
+        #        return Response({'detail': 'Рецепт удален из избранного'},
+        #                        status=status.HTTP_204_NO_CONTENT)
+        #    else:
+        #        return Response({'detail': 'Рецепт отсутствует в избранном, нечего удалять'},
+        #                        status=status.HTTP_400_BAD_REQUEST)
+    """Shopping cart"""
     @action(detail=True, methods=['post', 'delete'], url_path='shopping_cart')
     def shopping_cart(self, request, pk=None):
         recipe = self.get_object()
@@ -63,6 +115,26 @@ class RecipeViewSet(viewsets.ModelViewSet):
             else:
                 return Response({'detail': 'Рецепт отсутствует в корзине, нечего удалять'},
                                 status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='download_shopping_cart')
+    def download_shopping_cart(self, request):
+        user = request.user
+        if not user.is_authenticated:
+            return Response({'detail': 'Authentication required.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        shopping_cart = user.shopping_cart.all()
+        shopping_cart_data = "Shopping Cart List:\n"
+
+        for recipe in shopping_cart:
+            shopping_cart_data += f"Рецепт: {recipe.name}\n"
+            for recipe_ingredient in recipe.recipeingredient_set.all():
+                ingredient = recipe_ingredient.ingredient
+                quantity = recipe_ingredient.quantity
+                shopping_cart_data += f"- {ingredient.name}: {quantity} {ingredient.measurement_unit}\n"
+
+        response = HttpResponse(shopping_cart_data, content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="shopping_cart.txt"'
+        return response
 
 
 class TagViewSet(viewsets.ModelViewSet):

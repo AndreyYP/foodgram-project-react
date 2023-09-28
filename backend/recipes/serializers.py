@@ -15,6 +15,20 @@ class RecipeSerializer(serializers.ModelSerializer):
         queryset=Ingredient.objects.all(),
         required=True
     )
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
+
+    def get_is_favorited(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return int(user.favorites.filter(pk=obj.pk).exists())
+        return 0
+
+    def get_is_in_shopping_cart(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return int(user.shopping_cart.filter(pk=obj.pk).exists())
+        return False
 
     class Meta:
         model = Recipe
