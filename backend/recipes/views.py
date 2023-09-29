@@ -78,21 +78,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             else:
                 return Response({'detail': 'Рецепт отсутствует в избранном, нечего удалять'},
                                 status=status.HTTP_400_BAD_REQUEST)
-        #if request.method == 'POST':
-        #    if user.favorites.filter(pk=recipe.pk).exists():
-        #        return Response({'detail': 'Рецепт уже в избранном'},
-        #                        status=status.HTTP_400_BAD_REQUEST)
-        #    user.favorites.add(recipe)
-        #    serializer = self.get_serializer(recipe)
-        #    return Response(serializer.data, status=status.HTTP_200_OK)
-        #elif request.method == 'DELETE':
-        #    if user.favorites.filter(pk=recipe.pk).exists():
-        #        user.favorites.remove(recipe)
-        #        return Response({'detail': 'Рецепт удален из избранного'},
-        #                        status=status.HTTP_204_NO_CONTENT)
-        #    else:
-        #        return Response({'detail': 'Рецепт отсутствует в избранном, нечего удалять'},
-        #                        status=status.HTTP_400_BAD_REQUEST)
     """Shopping cart"""
     @action(detail=True, methods=['post', 'delete'], url_path='shopping_cart')
     def shopping_cart(self, request, pk=None):
@@ -140,9 +125,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    pagination_class = None
 

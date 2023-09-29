@@ -6,17 +6,6 @@ from recipes.models import Recipe
 
 
 class User(AbstractUser):
-    USER = "user"
-    MODERATOR = "moderator"
-    ADMIN = "admin"
-    USER_LEVELS = ((USER, "User"), (MODERATOR, "Moderator"), (ADMIN, "Admin"))
-
-    role = models.CharField(
-        verbose_name="Роль",
-        max_length=32,
-        choices=USER_LEVELS,
-        default=USER
-    )
     email = models.EmailField(
         verbose_name="Почта",
         unique=True,
@@ -63,18 +52,6 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
-
-    @property
-    def is_administrator(self):
-        return self.role == User.ADMIN or self.is_superuser or self.is_staff
-
-    @property
-    def is_moderator(self):
-        return self.role == User.MODERATOR
-
-    @property
-    def is_user(self):
-        return self.role == User.USER
 
     class Meta:
         verbose_name = "Пользователь"
