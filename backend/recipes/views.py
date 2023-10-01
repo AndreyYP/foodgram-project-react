@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from django.http import HttpResponse
-from collections import defaultdict
 
 from .models import Recipe, Tag, Ingredient, RecipeIngredient
 from .serializers import RecipeSerializer, TagSerializer, IngredientSerializer
@@ -27,10 +26,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            if 'ingredients' not in request.data or not request.data['ingredients']:
+            ingredients_data = serializer.initial_data.get('ingredients')
+
+            if not ingredients_data:
                 return Response({'ingredients': ['Поле является обязательным']}, status=status.HTTP_400_BAD_REQUEST)
 
-            self.perform_create(serializer)
+            recipe = serializer.save(author=self.request.user)
+
+            for ingredient_data in ingredients_data:
+                ingredient = Ingredient.objects.get(pk=ingredient_data['id'])
+                RecipeIngredient.objects.create(
+                    recipe=recipe,
+                    ingredient=ingredient,
+                    amount=ingredient_data['amount']
+                )
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

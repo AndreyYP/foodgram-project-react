@@ -1,21 +1,22 @@
 from djoser.views import UserViewSet
 
-from rest_framework import status, permissions
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 
-from api.paginators import LimitPagination
 from users.models import User, UserFollow
 from users.serializers import UsersSerializer, SubscriptionSerializer
 from rest_framework.response import Response
 
 
 class UsersViewSet(UserViewSet):
-    queryset = User.objects.all()
     serializer_class = UsersSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
     http_method_names = ['get', 'post', 'delete', 'head']
+
+    def get_queryset(self):
+        return User.objects.order_by('username')
 
     @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated])
     def me(self, request):

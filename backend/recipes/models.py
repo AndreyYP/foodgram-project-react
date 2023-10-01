@@ -13,7 +13,7 @@ class Recipe(models.Model):
     text = models.TextField()
     ingredients = models.ManyToManyField('Ingredient', through='RecipeIngredient')
     tags = models.ManyToManyField('Tag')
-    cooking_time_minutes = models.PositiveIntegerField()
+    cooking_time = models.PositiveIntegerField()
     is_favorited = models.BooleanField(default=False)
     is_in_shopping_cart = models.BooleanField(default=False)
 
@@ -42,7 +42,7 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     name = models.CharField(max_length=200)
     measurement_unit = models.CharField(max_length=200)
-    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=1)
 
     def __str__(self):
         return self.name
@@ -50,6 +50,6 @@ class Ingredient(models.Model):
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey('Recipe', on_delete=models.CASCADE)
-    ingredient = models.ForeignKey('Ingredient', on_delete=models.CASCADE)
-    measurement_unit = models.CharField(max_length=200)
-    quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    ingredient = models.ForeignKey('Ingredient', on_delete=models.CASCADE, blank=True, null=True)
+    measurement_unit = models.CharField(max_length=200, blank=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)

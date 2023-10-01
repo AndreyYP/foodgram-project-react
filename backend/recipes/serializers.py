@@ -3,20 +3,22 @@ import base64
 from rest_framework import serializers
 from django.core.files.base import ContentFile
 
-from recipes.models import Recipe, Tag, Ingredient
+from recipes.models import Recipe, Tag, Ingredient, RecipeIngredient
+
+
+class RecipeIngredientSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = RecipeIngredient
+        fields = ('id', 'amount')
 
 
 class RecipeSerializer(serializers.ModelSerializer):
     # autoadd author field for current user
     author = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
-    ingredients = serializers.SlugRelatedField(
-        many=True,
-        slug_field='name',
-        queryset=Ingredient.objects.all(),
-        required=True
-    )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
+    ingredients = RecipeIngredientSerializer(many=True, read_only=True)
 
     def get_is_favorited(self, obj):
         user = self.context['request'].user
@@ -42,14 +44,14 @@ class RecipeSerializer(serializers.ModelSerializer):
             'name',
             'image',
             'text',
-            'cooking_time_minutes',
+            'cooking_time',
         ]
 
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ['id', 'name', 'color_code', 'slug']
+        fields = ['id', 'name', 'color', 'slug']
 
 
 class IngredientSerializer(serializers.ModelSerializer):

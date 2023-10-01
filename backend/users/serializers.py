@@ -7,8 +7,8 @@ class UsersSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     def get_is_subscribed(self, obj):
-        request = self.context.get('request')
-        if request:
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
             return UserFollow.objects.filter(user=request.user, author=obj).exists()
         return False
 
