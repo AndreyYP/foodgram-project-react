@@ -9,7 +9,7 @@ class Recipe(models.Model):
                                related_name='recipes',
                                verbose_name='Автор')
     name = models.CharField(max_length=200)
-    image = models.ImageField(upload_to='recipes_images/')
+    image = models.ImageField(upload_to='recipes_images/', blank=True)
     text = models.TextField()
     ingredients = models.ManyToManyField('Ingredient', through='RecipeIngredient')
     tags = models.ManyToManyField('Tag')
@@ -49,6 +49,7 @@ class Ingredient(models.Model):
 
 
 class RecipeIngredient(models.Model):
+    name = models.CharField(max_length=200)
     recipe = models.ForeignKey('Recipe', on_delete=models.CASCADE)
     ingredient = models.ForeignKey('Ingredient', on_delete=models.CASCADE, blank=True, null=True)
     measurement_unit = models.CharField(max_length=200, blank=True)

@@ -4,18 +4,22 @@ from rest_framework import serializers
 from django.core.files.base import ContentFile
 
 from recipes.models import Recipe, Tag, Ingredient, RecipeIngredient
+from users.serializers import UsersSerializer
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecipeIngredient
-        fields = ('id', 'amount')
+        fields = ('id', 'name', 'measurement_unit', 'amount')
+
+    measurement_unit = serializers.CharField(required=False)
 
 
 class RecipeSerializer(serializers.ModelSerializer):
     # autoadd author field for current user
-    author = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+    #author = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+    author = UsersSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
     ingredients = RecipeIngredientSerializer(many=True, read_only=True)
@@ -24,7 +28,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         if user.is_authenticated:
             return int(user.favorites.filter(pk=obj.pk).exists())
-        return 0
+        return False
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user

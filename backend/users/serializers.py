@@ -51,6 +51,18 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     def get_recipes_count(self, obj):
         return obj.recipes.count()
 
+
+class RegistrationSerializer(UserCreateSerializer, SubscriptionSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ('username',
+                  'email',
+                  'first_name',
+                  'last_name',
+                  'password')
+
 #class UserFollowSerializer(serializers.ModelSerializer):
 #    follower = UserSerializer()
 #    followed = UserSerializer()

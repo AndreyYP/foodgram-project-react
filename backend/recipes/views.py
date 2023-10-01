@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, filters
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -140,5 +140,7 @@ class TagViewSet(viewsets.ModelViewSet):
 class IngredientViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
     pagination_class = None
 

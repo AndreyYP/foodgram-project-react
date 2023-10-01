@@ -27,14 +27,12 @@ class User(AbstractUser):
     first_name = models.CharField(
         verbose_name=('Имя'),
         max_length=150,
-        help_text=('Укажите свое имя'),
-        blank=True
+        help_text=('Укажите свое имя')
     )
     last_name = models.CharField(
         verbose_name=('Фамилия'),
         max_length=150,
-        help_text=('Укажите свою фамилию'),
-        blank=True
+        help_text=('Укажите свою фамилию')
     )
     password = models.CharField(
         verbose_name=('Пароль'),
