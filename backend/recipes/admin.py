@@ -10,7 +10,8 @@ class RecipeAdmin(admin.ModelAdmin):
     search_fields = ('name', 'author__username')
 
     def get_queryset(self, request):
-        return super().get_queryset(request).annotate(favorited_count=Count('favorite'))
+        return super().get_queryset(request).annotate(
+            favorited_count=Count('favorite'))
 
     def favorited_count(self, obj):
         return obj.favorited_count

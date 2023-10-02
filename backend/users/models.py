@@ -39,7 +39,9 @@ class User(AbstractUser):
         max_length=150,
         help_text=('Введите пароль'),
     )
-    shopping_cart = models.ManyToManyField(Recipe, blank=True, related_name='carts')
+    shopping_cart = models.ManyToManyField(Recipe,
+                                           blank=True,
+                                           related_name='carts')
     favorites = models.ManyToManyField(
         Recipe,
         blank=True,

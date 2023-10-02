@@ -9,7 +9,8 @@ class UsersSerializer(UserSerializer):
     def get_is_subscribed(self, obj):
         request = self.context.get("request")
         if request and request.user.is_authenticated:
-            return UserFollow.objects.filter(user=request.user, author=obj).exists()
+            return UserFollow.objects.filter(
+                user=request.user, author=obj).exists()
         return False
 
     class Meta:
@@ -32,7 +33,8 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
         if request:
-            return UserFollow.objects.filter(user=request.user, author=obj).exists()
+            return UserFollow.objects.filter(
+                user=request.user, author=obj).exists()
         return False
 
     class Meta:
@@ -62,11 +64,3 @@ class RegistrationSerializer(UserCreateSerializer, SubscriptionSerializer):
                   'first_name',
                   'last_name',
                   'password')
-
-#class UserFollowSerializer(serializers.ModelSerializer):
-#    follower = UserSerializer()
-#    followed = UserSerializer()
-#
-#    class Meta:
-#        model = UserFollow
-#        fields = ('follower', 'followed')

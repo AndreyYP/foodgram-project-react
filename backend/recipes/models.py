@@ -11,7 +11,8 @@ class Recipe(models.Model):
     name = models.CharField(max_length=200)
     image = models.ImageField(upload_to='recipes_images/', blank=True)
     text = models.TextField()
-    ingredients = models.ManyToManyField('Ingredient', through='RecipeIngredient')
+    ingredients = models.ManyToManyField('Ingredient',
+                                         through='RecipeIngredient')
     tags = models.ManyToManyField('Tag')
     cooking_time = models.PositiveIntegerField()
     is_favorited = models.BooleanField(default=False)
@@ -49,6 +50,10 @@ class Ingredient(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    recipe = models.ForeignKey('Recipe', on_delete=models.CASCADE, related_name='recipeingredients')
-    ingredient = models.ForeignKey('Ingredient', on_delete=models.CASCADE, related_name='recipeingredients')
+    recipe = models.ForeignKey('Recipe',
+                               on_delete=models.CASCADE,
+                               related_name='recipeingredients')
+    ingredient = models.ForeignKey('Ingredient',
+                                   on_delete=models.CASCADE,
+                                   related_name='recipeingredients')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
