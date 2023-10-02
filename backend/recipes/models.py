@@ -42,15 +42,13 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     name = models.CharField(max_length=200)
     measurement_unit = models.CharField(max_length=200)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=1)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
         return self.name
 
 
 class RecipeIngredient(models.Model):
-    name = models.CharField(max_length=200)
-    recipe = models.ForeignKey('Recipe', on_delete=models.CASCADE)
-    ingredient = models.ForeignKey('Ingredient', on_delete=models.CASCADE, blank=True, null=True)
-    measurement_unit = models.CharField(max_length=200, blank=True)
+    recipe = models.ForeignKey('Recipe', on_delete=models.CASCADE, related_name='recipeingredients')
+    ingredient = models.ForeignKey('Ingredient', on_delete=models.CASCADE, related_name='recipeingredients')
     amount = models.DecimalField(max_digits=10, decimal_places=2)

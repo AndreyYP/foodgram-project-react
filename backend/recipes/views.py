@@ -1,83 +1,54 @@
-from django.shortcuts import get_object_or_404
+from django.db.models import Q
 from rest_framework import status, viewsets, filters
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied
 from django.http import HttpResponse
 
-from .models import Recipe, Tag, Ingredient, RecipeIngredient
-from .serializers import RecipeSerializer, TagSerializer, IngredientSerializer
+from api.paginators import LimitPagination
+from .models import Recipe, Tag, Ingredient
+from .serializers import RecipeSerializer, TagSerializer, IngredientSerializer, FavoriteSerializer
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = LimitPagination
 
     def get_queryset(self):
         queryset = Recipe.objects.all()
-        tag_ids = self.request.query_params.getlist('tags')
-        if tag_ids:
-            tags = get_object_or_404(Tag, id__in=tag_ids)
-            queryset = queryset.filter(tags__in=tags)
-        return queryset
+        tag_slugs = self.request.query_params.getlist('tags')
+        if tag_slugs:
+            tag_filter = Q()
+            for slug in tag_slugs:
+                tag_filter |= Q(tags__slug=slug)
+            queryset = queryset.filter(tag_filter)
+        is_favorited_param = self.request.query_params.get('is_favorited', None)
+        if is_favorited_param == '1':
+            favorited_recipe_ids = self.request.user.favorites.values_list('id', flat=True)
+            queryset = queryset.filter(id__in=favorited_recipe_ids)
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            ingredients_data = serializer.initial_data.get('ingredients')
+        return queryset.distinct()
 
-            if not ingredients_data:
-                return Response({'ingredients': ['Поле является обязательным']}, status=status.HTTP_400_BAD_REQUEST)
-
-            recipe = serializer.save(author=self.request.user)
-
-            for ingredient_data in ingredients_data:
-                ingredient = Ingredient.objects.get(pk=ingredient_data['id'])
-                RecipeIngredient.objects.create(
-                    recipe=recipe,
-                    ingredient=ingredient,
-                    amount=ingredient_data['amount']
-                )
-            headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        user = request.user
-
-        if instance.author != user:
-            raise PermissionDenied("Вы не являетесь автором рецепта")
-
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
     """Favorites"""
     @action(detail=True, methods=['post', 'delete'], url_path='favorite')
     def toggle_favorite(self, request, pk=None):
         recipe = self.get_object()
         user = request.user
-        tag_ids = request.query_params.getlist('tags')
-        if tag_ids:
-            tags = get_object_or_404(Tag, id__in=tag_ids)
+        tag_names = request.query_params.getlist('tags', [])
+        tags = Tag.objects.filter(name__in=tag_names)
+        if tag_names:
+            tags = Tag.objects.filter(name__in=tag_names)
             favorite_recipes = user.favorites.filter(tags__in=tags)
         else:
             favorite_recipes = user.favorites.all()
         if request.method == 'POST':
             if favorite_recipes.filter(pk=recipe.pk).exists():
-                return Response({'detail': 'Рецепт уже в избранном'},
-                                status=status.HTTP_400_BAD_REQUEST)
+                return Response({'detail': 'Рецепт уже в избранном'}, status=status.HTTP_400_BAD_REQUEST)
             user.favorites.add(recipe)
-            serializer = self.get_serializer(recipe)
+            recipe.tags.add(*tags)
+            serializer = FavoriteSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_200_OK)
         elif request.method == 'DELETE':
             if favorite_recipes.filter(pk=recipe.pk).exists():
@@ -92,7 +63,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def shopping_cart(self, request, pk=None):
         recipe = self.get_object()
         user = request.user
-        # POST
         if request.method == 'POST':
             if user.shopping_cart.filter(pk=recipe.pk).exists():
                 return Response({'detail': 'Рецепт уже в корзине'},
@@ -100,7 +70,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             user.shopping_cart.add(recipe)
             serializer = self.get_serializer(recipe)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        # DELETE
         elif request.method == 'DELETE':
             if user.shopping_cart.filter(pk=recipe.pk).exists():
                 user.shopping_cart.remove(recipe)
@@ -123,8 +92,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             shopping_cart_data += f"Рецепт: {recipe.name}\n"
             for recipe_ingredient in recipe.recipeingredient_set.all():
                 ingredient = recipe_ingredient.ingredient
-                quantity = recipe_ingredient.quantity
-                shopping_cart_data += f"- {ingredient.name}: {quantity} {ingredient.measurement_unit}\n"
+                amount = recipe_ingredient.amount
+                shopping_cart_data += f"- {ingredient.name}: {amount} {ingredient.measurement_unit}\n"
 
         response = HttpResponse(shopping_cart_data, content_type='text/plain')
         response['Content-Disposition'] = 'attachment; filename="shopping_cart.txt"'
@@ -144,3 +113,9 @@ class IngredientViewSet(viewsets.ModelViewSet):
     search_fields = ['name']
     pagination_class = None
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search_query = self.request.query_params.get('name')
+        if search_query:
+            queryset = queryset.filter(name__icontains=search_query)
+        return queryset
