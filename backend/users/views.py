@@ -1,6 +1,7 @@
 from djoser.views import UserViewSet
 
 from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (IsAuthenticatedOrReadOnly,
@@ -8,7 +9,6 @@ from rest_framework.permissions import (IsAuthenticatedOrReadOnly,
 
 from users.models import User, UserFollow
 from users.serializers import UsersSerializer, SubscriptionSerializer
-from rest_framework.response import Response
 
 
 class UsersViewSet(UserViewSet):

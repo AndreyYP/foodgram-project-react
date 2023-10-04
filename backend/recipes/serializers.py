@@ -30,13 +30,14 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(read_only=True)
+    # Delete name = serializers.CharField(read_only=True)
     id = serializers.PrimaryKeyRelatedField(read_only=True)
-    measurement_unit = serializers.CharField(read_only=True)
+    # Delete measurement_unit = serializers.CharField(read_only=True)
+    amount = serializers.IntegerField
 
     class Meta:
         model = RecipeIngredient
-        fields = ('id', 'name', 'measurement_unit', 'amount')
+        fields = ('id', 'amount')
 
 
 class AddIngredientSerializer(serializers.ModelSerializer):
@@ -54,9 +55,9 @@ class RecipeSerializer(serializers.ModelSerializer):
     author = UsersSerializer(read_only=True)
     ingredients = AddIngredientSerializer(many=True)
     image = Base64ImageField()
-    tags = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(), many=True
-    )
+    #tags = serializers.PrimaryKeyRelatedField(
+    #    queryset=Tag.objects.all(), many=True
+    #)
 
     def get_ingredients(self, recipe, ingredients):
         RecipeIngredient.objects.bulk_create(
@@ -108,7 +109,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 class GetRecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     author = UsersSerializer(read_only=True)
-    ingredients = RecipeIngredientSerializer(read_only=True, many=True)
+    ingredients = RecipeIngredientSerializer(read_only=True, many=True, source='recipeingredients') # Source!import
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
@@ -128,13 +129,13 @@ class GetRecipeSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, obj):
         user = self.context['request'].user
         if user.is_authenticated:
-            return int(user.favorites.filter(pk=obj.pk).exists())
+            return int(user.favorite.filter(recipe=obj).exists())
         return 0
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
         if user.is_authenticated:
-            return int(user.shopping_cart.filter(pk=obj.pk).exists())
+            return int(user.shopping_cart.filter(recipe=obj).exists())
         return 0
 
 

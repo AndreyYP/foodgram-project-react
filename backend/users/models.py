@@ -2,8 +2,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from rest_framework.exceptions import ValidationError
 
-from recipes.models import Recipe
-
 
 class User(AbstractUser):
     email = models.EmailField(
@@ -38,14 +36,6 @@ class User(AbstractUser):
         verbose_name=('Пароль'),
         max_length=150,
         help_text=('Введите пароль'),
-    )
-    shopping_cart = models.ManyToManyField(Recipe,
-                                           blank=True,
-                                           related_name='carts')
-    favorites = models.ManyToManyField(
-        Recipe,
-        blank=True,
-        related_name='favorite',
     )
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
