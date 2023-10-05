@@ -30,14 +30,17 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
-    # Delete name = serializers.CharField(read_only=True)
-    id = serializers.PrimaryKeyRelatedField(read_only=True)
-    # Delete measurement_unit = serializers.CharField(read_only=True)
-    amount = serializers.IntegerField
+    name = serializers.CharField(
+        source='ingredient.name', read_only=True)
+    id = serializers.PrimaryKeyRelatedField(
+        source='ingredient.id', read_only=True)
+    measurement_unit = serializers.CharField(
+        source='ingredient.measurement_unit', read_only=True)
+    # amount = serializers.IntegerField
 
     class Meta:
         model = RecipeIngredient
-        fields = ('id', 'amount')
+        fields = ('id', 'amount', 'name', 'measurement_unit')
 
 
 class AddIngredientSerializer(serializers.ModelSerializer):
@@ -55,9 +58,6 @@ class RecipeSerializer(serializers.ModelSerializer):
     author = UsersSerializer(read_only=True)
     ingredients = AddIngredientSerializer(many=True)
     image = Base64ImageField()
-    #tags = serializers.PrimaryKeyRelatedField(
-    #    queryset=Tag.objects.all(), many=True
-    #)
 
     def get_ingredients(self, recipe, ingredients):
         RecipeIngredient.objects.bulk_create(
@@ -109,7 +109,8 @@ class RecipeSerializer(serializers.ModelSerializer):
 class GetRecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     author = UsersSerializer(read_only=True)
-    ingredients = RecipeIngredientSerializer(read_only=True, many=True, source='recipeingredients') # Source!import
+    ingredients = RecipeIngredientSerializer(
+        read_only=True, many=True, source='recipeingredients')
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 

@@ -1,11 +1,13 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import RegexValidator, MinValueValidator, ValidationError
+from django.core.validators import (RegexValidator,
+                                    MinValueValidator,
+                                    ValidationError)
 from django.db import models
-from django.conf import settings
 
 User = get_user_model()
 
 MAX_LEN200 = 200
+MAX_LEN7 = 7
 
 
 class Recipe(models.Model):
@@ -19,7 +21,8 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField('Ingredient',
                                          through='RecipeIngredient')
     tags = models.ManyToManyField('Tag')
-    cooking_time = models.PositiveIntegerField(validators=[MinValueValidator(1)],)
+    cooking_time = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)],)
 
     pub_date = models.DateTimeField(auto_now_add=True)
 
@@ -39,13 +42,14 @@ hex_color_validator = RegexValidator(
 class Tag(models.Model):
     name = models.CharField(max_length=MAX_LEN200, unique=True)
     color = models.CharField(
-        max_length=7,
+        max_length=MAX_LEN7,
         validators=[hex_color_validator]
     )
 
     def save(self, *args, **kwargs):
         if Tag.objects.filter(color=self.color).exclude(pk=self.pk).exists():
-            raise ValidationError('Цвет должен быть уникальным для каждого тега.')
+            raise ValidationError(
+                'Цвет должен быть уникальным для каждого тега.')
         super().save(*args, **kwargs)
     slug = models.SlugField(unique=True, max_length=MAX_LEN200)
 

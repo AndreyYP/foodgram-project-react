@@ -2,12 +2,15 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from rest_framework.exceptions import ValidationError
 
+MAX_LEN254 = 254
+MAX_LEN150 = 150
+
 
 class User(AbstractUser):
     email = models.EmailField(
         verbose_name="Почта",
         unique=True,
-        max_length=254,
+        max_length=MAX_LEN254,
         error_messages={
             'unique': ('Email уже используется'),
         },
@@ -15,7 +18,7 @@ class User(AbstractUser):
     )
     username = models.CharField(
         verbose_name=('Логин'),
-        max_length=150,
+        max_length=MAX_LEN150,
         unique=True,
         help_text=('Укажите свой логин'),
         error_messages={
@@ -24,17 +27,17 @@ class User(AbstractUser):
     )
     first_name = models.CharField(
         verbose_name=('Имя'),
-        max_length=150,
+        max_length=MAX_LEN150,
         help_text=('Укажите свое имя')
     )
     last_name = models.CharField(
         verbose_name=('Фамилия'),
-        max_length=150,
+        max_length=MAX_LEN150,
         help_text=('Укажите свою фамилию')
     )
     password = models.CharField(
         verbose_name=('Пароль'),
-        max_length=150,
+        max_length=MAX_LEN150,
         help_text=('Введите пароль'),
     )
     is_active = models.BooleanField(default=True)
@@ -45,7 +48,6 @@ class User(AbstractUser):
 
     class Meta:
         verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
 
     def __str__(self):
         return self.username
@@ -74,6 +76,4 @@ class UserFollow(models.Model):
         return f'Автор: {self.author}, подписчик: {self.user}'
 
     class Meta:
-        verbose_name = 'Подписка'
-        verbose_name_plural = 'Подписки'
         unique_together = ('user', 'author')
