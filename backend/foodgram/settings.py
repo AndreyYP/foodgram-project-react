@@ -6,11 +6,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv()
 
-#SECRET_KEY = 'django-insecure-nh8ei^p0!70g_9n13i9gq4)l!n@e=8com!cwmzm7(qlr*jwr6*'
-#DEBUG = True
-#ALLOWED_HOSTS = []
-#DEBUG = False
-#ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '51.250.105.42', 'foodgramz.hopto.org']
 SECRET_KEY = os.getenv('SECRET_KEY', default='secret_key')
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 CSRF_TRUSTED_ORIGINS = ['http://foodgramz.hopto.org']
