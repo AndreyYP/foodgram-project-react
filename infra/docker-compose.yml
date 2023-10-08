@@ -14,9 +14,7 @@ services:
       - ../.env
 
   backend:
-    build:
-          context: ../backend
-          dockerfile: Dockerfile
+    image: qorgiz/foodgram_backend
     restart: always
     volumes:
       - static:/app/backend_static/
@@ -27,9 +25,7 @@ services:
       - ../.env
 
   frontend:
-    build:
-          context: ../frontend
-          dockerfile: Dockerfile
+    image: qorgiz/foodgram_frontend
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
@@ -38,7 +34,7 @@ services:
   nginx:
     image: nginx:1.19.3
     ports:
-      - "80:80"
+      - "8000:80"
     volumes:
       - static:/var/html/backend_static/
       - media:/var/html/media/
