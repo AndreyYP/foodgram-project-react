@@ -92,20 +92,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 ingredient = recipe_ingredient.ingredient
                 amount = recipe_ingredient.amount
 
-                shopping_cart_data[(ingredient.name, ingredient.measurement_unit)] += amount
+                shopping_cart_data[
+                    (ingredient.name, ingredient.measurement_unit)] += amount
         response_data = ""
 
         response_data += "\nРецепты в списке:\n"
         for recipe_name in recipe_names:
             response_data += f"- {recipe_name}\n"
-        for (ingredient_name, measurement_unit), total_quantity in shopping_cart_data.items():
+        for (ingredient_name,
+             measurement_unit), total_quantity in shopping_cart_data.items():
             response_data += (
-                f"\nОбщее количество ингредиентов:\n{ingredient_name}: {total_quantity} {measurement_unit}\n"
+                f"\nОбщее количество ингредиентов:"
+                f"\n{ingredient_name}: {total_quantity} {measurement_unit}\n"
             )
         response = HttpResponse(response_data, content_type='text/plain')
         response['Content-Disposition'] = (
             'attachment; filename="shopping_cart.txt"')
         return response
+
 
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()

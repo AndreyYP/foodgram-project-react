@@ -7,7 +7,9 @@ class Command(BaseCommand):
     help = 'Import ingredients from a JSON file'
 
     def add_arguments(self, parser):
-        parser.add_argument('json_file', type=str, help='Path to the JSON file')
+        parser.add_argument('json_file',
+                            type=str,
+                            help='Path to the JSON file')
 
     def handle(self, *args, **kwargs):
         json_file_path = kwargs['json_file']
@@ -21,4 +23,6 @@ class Command(BaseCommand):
                 measurement_unit=ingredient_data['measurement_unit']
             )
 
-            self.stdout.write(self.style.SUCCESS('Successfully imported ingredients.'))
+            self.stdout.write(self.style.SUCCESS(
+                'Successfully imported ingredients.')
+            )

@@ -9,7 +9,8 @@ load_dotenv()
 
 SECRET_KEY = os.getenv('SECRET_KEY', default='secret_key')
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
-CSRF_TRUSTED_ORIGINS = ['http://foodgramz.hopto.org', 'https://foodgramz.hopto.org']
+CSRF_TRUSTED_ORIGINS = ['http://foodgramz.hopto.org',
+                        'https://foodgramz.hopto.org']
 DEBUG = os.getenv('DEBUG').lower() == "true"
 
 INSTALLED_APPS = [
