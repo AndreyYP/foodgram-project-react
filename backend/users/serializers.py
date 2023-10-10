@@ -1,5 +1,6 @@
 from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import serializers
+
 from users.models import User, UserFollow
 
 
@@ -7,7 +8,7 @@ class UsersSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     def get_is_subscribed(self, obj):
-        request = self.context.get("request")
+        request = self.context.get('request')
         if request and request.user.is_authenticated:
             return UserFollow.objects.filter(
                 user=request.user, author=obj).exists()
@@ -27,7 +28,7 @@ class UsersSerializer(UserSerializer):
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
-    recipes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    recipes = serializers.SerializerMethodField(read_only=True)
     recipes_count = serializers.SerializerMethodField()
 
     def get_is_subscribed(self, obj):
@@ -49,6 +50,14 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             'recipes',
             'recipes_count',
         )
+
+    def get_recipes(self, obj):
+        from recipes.serializers import FavoriteSerializer
+
+        request = self.context.get('request')
+        context = {'request': request}
+        queryset = obj.recipes.all()
+        return FavoriteSerializer(queryset, context=context, many=True).data
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()

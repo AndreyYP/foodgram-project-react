@@ -7,6 +7,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import (IsAuthenticatedOrReadOnly,
                                         IsAuthenticated)
 
+from api.paginators import LimitPagination
 from users.models import User, UserFollow
 from users.serializers import UsersSerializer, SubscriptionSerializer
 
@@ -14,6 +15,7 @@ from users.serializers import UsersSerializer, SubscriptionSerializer
 class UsersViewSet(UserViewSet):
     serializer_class = UsersSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
+    pagination_class = LimitPagination
     http_method_names = ['get', 'post', 'delete', 'head']
 
     def get_queryset(self):
@@ -57,8 +59,7 @@ class UsersViewSet(UserViewSet):
     def subscriptions(self, request):
         user = request.user
         follows = User.objects.filter(followed__user=user)
-        paginator = PageNumberPagination()
-        paginator.page_size = 6
+        paginator = LimitPagination()
         paginated_follows = paginator.paginate_queryset(follows, request)
         serializer = SubscriptionSerializer(
             paginated_follows, many=True, context={'request': request})

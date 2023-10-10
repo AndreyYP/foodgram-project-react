@@ -10,18 +10,18 @@ class RecipeFilters(django_filters.FilterSet):
 
     class Meta:
         model = Recipe
-        fields = ('tags', 'is_favorited', 'is_in_shopping_cart')
+        fields = ('tags', 'is_favorited', 'is_in_shopping_cart', 'author')
 
     def get_is_favorited(self, queryset, name, value):
         user = self.request.user
         if user.is_authenticated:
             if value == '1':
                 return queryset.filter(favorite__user=user)
-        return queryset.none()
+        return queryset
 
     def get_is_in_shopping_cart(self, queryset, name, value):
         user = self.request.user
         if user.is_authenticated:
             if value == '1':
                 return queryset.filter(shopping_cart__user=user)
-        return queryset.none()
+        return queryset

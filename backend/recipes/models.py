@@ -60,7 +60,6 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     name = models.CharField(max_length=MAX_LEN200)
     measurement_unit = models.CharField(max_length=MAX_LEN200)
-    amount = models.PositiveIntegerField(validators=[MinValueValidator(1)],)
 
     def __str__(self):
         return self.name
