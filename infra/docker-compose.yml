@@ -4,7 +4,6 @@ volumes:
   static:
   media:
   db_data:
-  docs:
 
 services:
   db:
@@ -20,7 +19,6 @@ services:
     volumes:
       - static:/app/backend_static/
       - media:/app/media/
-      - docs:/app/api/docs/
     depends_on:
       - db
     env_file:
