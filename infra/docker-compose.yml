@@ -4,7 +4,7 @@ volumes:
   static:
   media:
   db_data:
-  front_static:
+  docs:
 
 services:
   db:
@@ -20,6 +20,7 @@ services:
     volumes:
       - static:/app/backend_static/
       - media:/app/media/
+      - docs:/app/api/docs/
     depends_on:
       - db
     env_file:
@@ -28,8 +29,7 @@ services:
   frontend:
     image: qorgiz/foodgram_frontend
     volumes:
-      #- ../frontend/:/app/result_build/
-      - front_static:/app/result_build/build
+      - ../frontend/:/app/result_build/
     depends_on:
       - backend
 
@@ -40,10 +40,10 @@ services:
     volumes:
       - static:/var/html/backend_static/
       - media:/var/html/media/
+      - docs:/usr/share/nginx/html/api/docs/
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      #- ../frontend/build:/usr/share/nginx/html/
-      - front_static:/usr/share/nginx/html/
-      - ../docs/:/usr/share/nginx/html/api/docs/
+      - ../frontend/build:/usr/share/nginx/html/
+      #- ../docs/:/usr/share/nginx/html/api/docs/
     restart: always
     depends_on:
       - frontend
