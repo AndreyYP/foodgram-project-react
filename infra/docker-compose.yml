@@ -4,7 +4,7 @@ volumes:
   static:
   media:
   db_data:
-  docs:
+  #docs:
 
 services:
   db:
@@ -20,7 +20,7 @@ services:
     volumes:
       - static:/app/backend_static/
       - media:/app/media/
-      - docs:/app/api/docs/
+      #- docs:/app/api/docs/
     depends_on:
       - db
     env_file:
@@ -40,10 +40,10 @@ services:
     volumes:
       - static:/var/html/backend_static/
       - media:/var/html/media/
-      - docs:/usr/share/nginx/html/api/docs/
+      #- docs:/usr/share/nginx/html/api/docs/
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
-      #- ../docs/:/usr/share/nginx/html/api/docs/
+      - ../docs/:/usr/share/nginx/html/api/docs/
     restart: always
     depends_on:
       - frontend
