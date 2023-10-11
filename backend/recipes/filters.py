@@ -1,19 +1,23 @@
 import django_filters
 from django.db.models import Q
+from rest_framework import filters
 
 from recipes.models import Recipe
 
 
-class TagsFilter(django_filters.CharFilter):
-    def filter(self, qs, value):
-        if value:
-            values = value.split(',')
-            return super(TagsFilter, self).filter(qs, values)
-        return qs
+class MultipleTagsFilterBackend(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        tags = request.query_params.getlist('tags')
+        if tags:
+            filter_conditions = Q()
+            for tag in tags:
+                filter_conditions |= Q(tags__slug=tag)
+            return queryset.filter(filter_conditions)
+        return queryset
 
 
 class RecipeFilters(django_filters.FilterSet):
-    tags = TagsFilter(field_name='tags__slug', method='filter_tags')
+    tags = MultipleTagsFilterBackend()
     is_favorited = django_filters.CharFilter(method='get_is_favorited')
     is_in_shopping_cart = django_filters.CharFilter(
         method='get_is_in_shopping_cart')
@@ -21,10 +25,8 @@ class RecipeFilters(django_filters.FilterSet):
     def filter_tags(self, queryset, name, value):
         if value:
             tags = value.split(',')
-            tag_filter = Q()
-            for tag in tags:
-                tag_filter |= Q(tags__slug=tag)
-            return queryset.filter(tag_filter)
+            return queryset.filter(tags__slug__in=tags)
+
         return queryset
 
     def get_is_favorited(self, queryset, name, value):

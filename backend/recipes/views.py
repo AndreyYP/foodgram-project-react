@@ -1,7 +1,6 @@
 from collections import defaultdict
 
 from django.db.models import Sum
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets, filters
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -9,7 +8,7 @@ from rest_framework.decorators import action
 from django.http import HttpResponse
 
 from api.paginators import LimitPagination
-from .filters import RecipeFilters
+from .filters import RecipeFilters, MultipleTagsFilterBackend
 from .models import (Recipe, Tag, Ingredient,
                      Favorite, ShoppingCart, RecipeIngredient)
 from .serializers import (RecipeSerializer, TagSerializer,
@@ -19,7 +18,7 @@ from .serializers import (RecipeSerializer, TagSerializer,
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [MultipleTagsFilterBackend]
     filterset_class = RecipeFilters
     serializer_class = RecipeSerializer
     pagination_class = LimitPagination
