@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets, filters
 from rest_framework import permissions
@@ -9,7 +10,8 @@ from django.http import HttpResponse
 
 from api.paginators import LimitPagination
 from .filters import RecipeFilters
-from .models import Recipe, Tag, Ingredient, Favorite, ShoppingCart
+from .models import (Recipe, Tag, Ingredient,
+                     Favorite, ShoppingCart, RecipeIngredient)
 from .serializers import (RecipeSerializer, TagSerializer,
                           IngredientSerializer)
 
@@ -35,9 +37,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             if created:
                 return Response({'detail': 'Рецепт добавлен в избранное'},
                                 status=status.HTTP_201_CREATED)
-            else:
-                return Response({'detail': 'Рецепт уже в избранном'},
-                                status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Рецепт уже в избранном'},
+                            status=status.HTTP_400_BAD_REQUEST)
         try:
             favorite = Favorite.objects.get(user=user, recipe=recipe)
             favorite.delete()
@@ -77,37 +78,46 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if not user.is_authenticated:
             return Response(
                 {'detail': 'Authentication required.'},
-                status=status.HTTP_401_UNAUTHORIZED)
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
-        shopping_cart_items = user.shopping_cart.all()
+        shopping_cart_items = RecipeIngredient.objects.filter(
+            recipe__shopping_cart__user=user
+        ).values(
+            'ingredient__name',
+            'ingredient__measurement_unit',
+            'recipe__name'
+        ).annotate(
+            total_quantity=Sum('amount')
+        ).order_by('recipe__name', 'ingredient__name')
 
-        shopping_cart_data = defaultdict(int)
-        recipe_names = []
+        response_data = "Список покупок:\n"
+        current_recipe = None
+        ingredient_totals = defaultdict(int)
 
         for item in shopping_cart_items:
-            recipe = item.recipe
-            recipe_names.append(recipe.name)
+            ingredient_name = item['ingredient__name']
+            measurement_unit = item['ingredient__measurement_unit']
+            total_quantity = item['total_quantity']
+            recipe_name = item['recipe__name']
 
-            for recipe_ingredient in recipe.recipeingredients.all():
-                ingredient = recipe_ingredient.ingredient
-                amount = recipe_ingredient.amount
+            if current_recipe != recipe_name:
+                current_recipe = recipe_name
+                response_data += f"\nРецепт: {recipe_name}"
 
-                shopping_cart_data[
-                    (ingredient.name, ingredient.measurement_unit)] += amount
-        response_data = ""
+        ingredient_totals[(ingredient_name,
+                           measurement_unit)] += total_quantity
+        response_data += "\nОбщее количество ингредиентов для всех рецептов:\n"
 
-        response_data += "\nРецепты в списке:\n"
-        for recipe_name in recipe_names:
-            response_data += f"- {recipe_name}\n"
         for (ingredient_name,
-             measurement_unit), total_quantity in shopping_cart_data.items():
+             measurement_unit), total_quantity in ingredient_totals.items():
             response_data += (
-                f"\nОбщее количество ингредиентов:"
-                f"\n{ingredient_name}: {total_quantity} {measurement_unit}\n"
+                f"{ingredient_name}: {total_quantity} {measurement_unit}\n"
             )
+
         response = HttpResponse(response_data, content_type='text/plain')
-        response['Content-Disposition'] = (
-            'attachment; filename="shopping_cart.txt"')
+        response['Content-Disposition'] = ('attachment;'
+                                           ' filename="shopping_cart.txt"')
         return response
 
 

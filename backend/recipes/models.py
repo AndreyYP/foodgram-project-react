@@ -6,8 +6,8 @@ from django.db import models
 
 User = get_user_model()
 
-MAX_LEN200 = 200
-MAX_LEN7 = 7
+MAX_NAME = 200
+MAX_HEX = 7
 
 
 class Recipe(models.Model):
@@ -15,7 +15,7 @@ class Recipe(models.Model):
                                on_delete=models.CASCADE,
                                related_name='recipes',
                                verbose_name='Автор')
-    name = models.CharField(max_length=MAX_LEN200)
+    name = models.CharField(max_length=MAX_NAME)
     image = models.ImageField(upload_to='recipes_images/')
     text = models.TextField()
     ingredients = models.ManyToManyField('Ingredient',
@@ -23,7 +23,6 @@ class Recipe(models.Model):
     tags = models.ManyToManyField('Tag')
     cooking_time = models.PositiveIntegerField(
         validators=[MinValueValidator(1)],)
-
     pub_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -34,35 +33,38 @@ class Recipe(models.Model):
 
 
 hex_color_validator = RegexValidator(
-    regex=r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$',
+    regex=r'^#([A-F0-9]{6}|[A-F0-9]{3})$',
     message='Введите правильный hex-код цвета (например, "#RRGGBB").'
-)
+            ' Либо такой hex-код уже существует.')
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=MAX_LEN200, unique=True)
+    name = models.CharField(max_length=MAX_NAME, unique=True)
     color = models.CharField(
-        max_length=MAX_LEN7,
+        max_length=MAX_HEX,
         validators=[hex_color_validator]
     )
+    slug = models.SlugField(unique=True, max_length=MAX_NAME)
+
+    def __str__(self):
+        return self.name
 
     def save(self, *args, **kwargs):
         if Tag.objects.filter(color=self.color).exclude(pk=self.pk).exists():
             raise ValidationError(
                 'Цвет должен быть уникальным для каждого тега.')
         super().save(*args, **kwargs)
-    slug = models.SlugField(unique=True, max_length=MAX_LEN200)
-
-    def __str__(self):
-        return self.name
 
 
 class Ingredient(models.Model):
-    name = models.CharField(max_length=MAX_LEN200)
-    measurement_unit = models.CharField(max_length=MAX_LEN200)
+    name = models.CharField(max_length=MAX_NAME)
+    measurement_unit = models.CharField(max_length=MAX_NAME)
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        unique_together = ('name', 'measurement_unit')
 
 
 class RecipeIngredient(models.Model):

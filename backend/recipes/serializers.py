@@ -3,6 +3,7 @@ import base64
 from django.db import transaction
 from rest_framework import serializers
 from django.core.files.base import ContentFile
+from rest_framework.exceptions import NotAuthenticated
 
 from recipes.models import Recipe, Tag, Ingredient, RecipeIngredient
 from users.serializers import UsersSerializer
@@ -45,8 +46,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 class AddIngredientSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(),
-        source='ingredient'
-    )
+        source='ingredient')
 
     class Meta:
         model = RecipeIngredient
@@ -130,13 +130,13 @@ class GetRecipeSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         if user.is_authenticated:
             return int(user.favorite.filter(recipe=obj).exists())
-        return 0
+        raise NotAuthenticated()
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
         if user.is_authenticated:
             return int(user.shopping_cart.filter(recipe=obj).exists())
-        return 0
+        raise NotAuthenticated()
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
