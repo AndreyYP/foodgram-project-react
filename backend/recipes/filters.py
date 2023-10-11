@@ -26,7 +26,6 @@ class RecipeFilters(django_filters.FilterSet):
         if value:
             tags = value.split(',')
             return queryset.filter(tags__slug__in=tags)
-
         return queryset
 
     def get_is_favorited(self, queryset, name, value):

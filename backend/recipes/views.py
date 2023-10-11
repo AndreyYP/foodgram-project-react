@@ -79,40 +79,38 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 {'detail': 'Authentication required.'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
-
         shopping_cart_items = RecipeIngredient.objects.filter(
             recipe__shopping_cart__user=user
         ).values(
+            'recipe__name',
             'ingredient__name',
             'ingredient__measurement_unit',
-            'recipe__name'
         ).annotate(
             total_quantity=Sum('amount')
         ).order_by('recipe__name', 'ingredient__name')
 
         response_data = "Список покупок:\n"
-        current_recipe = None
         ingredient_totals = defaultdict(int)
+        current_recipe = None
 
         for item in shopping_cart_items:
+            recipe_name = item['recipe__name']
             ingredient_name = item['ingredient__name']
             measurement_unit = item['ingredient__measurement_unit']
             total_quantity = item['total_quantity']
-            recipe_name = item['recipe__name']
 
             if current_recipe != recipe_name:
                 current_recipe = recipe_name
                 response_data += f"\nРецепт: {recipe_name}"
 
-        ingredient_totals[(ingredient_name,
-                           measurement_unit)] += total_quantity
+            ingredient_totals[(ingredient_name,
+                               measurement_unit)] += total_quantity
         response_data += "\nОбщее количество ингредиентов для всех рецептов:\n"
-
         for (ingredient_name,
              measurement_unit), total_quantity in ingredient_totals.items():
-            response_data += (
-                f"{ingredient_name}: {total_quantity} {measurement_unit}\n"
-            )
+            response_data += (f"{ingredient_name}:"
+                              f" {total_quantity}"
+                              f" {measurement_unit}\n")
 
         response = HttpResponse(response_data, content_type='text/plain')
         response['Content-Disposition'] = ('attachment;'
