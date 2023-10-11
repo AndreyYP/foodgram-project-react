@@ -14,7 +14,6 @@ class RecipeFilters(django_filters.FilterSet):
     def filter_tags(self, queryset, name, value):
         if value:
             tags = self.request.GET.getlist('tags')
-            queryset = Recipe.objects.all()
             or_conditions = Q()
             for tag in tags:
                 or_conditions |= Q(tags__slug=tag)
@@ -25,7 +24,6 @@ class RecipeFilters(django_filters.FilterSet):
     def get_author(self, queryset, name, value):
         author_id = self.request.query_params.get('author')
         queryset = Recipe.objects.all()
-
         if author_id:
             queryset = queryset.filter(author__id=author_id)
 
@@ -36,16 +34,14 @@ class RecipeFilters(django_filters.FilterSet):
         if user.is_authenticated:
             if value == '1':
                 return queryset.filter(favorite__user=user)
-
-        return queryset
+        return queryset.none()
 
     def get_is_in_shopping_cart(self, queryset, name, value):
         user = self.request.user
         if user.is_authenticated:
             if value == '1':
                 return queryset.filter(shopping_cart__user=user)
-
-        return queryset
+        return queryset.none()
 
     class Meta:
         model = Recipe

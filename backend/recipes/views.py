@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from django.db.models import Sum, Q
+from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets, filters
 from rest_framework import permissions
