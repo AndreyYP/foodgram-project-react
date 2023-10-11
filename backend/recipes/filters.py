@@ -1,31 +1,34 @@
 import django_filters
 from django.db.models import Q
-from rest_framework import filters
 
 from recipes.models import Recipe
 
 
-class MultipleTagsFilterBackend(filters.BaseFilterBackend):
-    def filter_queryset(self, request, queryset, view):
-        tags = request.query_params.getlist('tags')
-        if tags:
-            filter_conditions = Q()
-            for tag in tags:
-                filter_conditions |= Q(tags__slug=tag)
-            return queryset.filter(filter_conditions)
-        return queryset
-
-
 class RecipeFilters(django_filters.FilterSet):
-    tags = MultipleTagsFilterBackend()
     is_favorited = django_filters.CharFilter(method='get_is_favorited')
     is_in_shopping_cart = django_filters.CharFilter(
         method='get_is_in_shopping_cart')
+    author = django_filters.CharFilter(method='get_author')
+    tags = django_filters.CharFilter(method='filter_tags')
 
     def filter_tags(self, queryset, name, value):
         if value:
-            tags = value.split(',')
-            return queryset.filter(tags__slug__in=tags)
+            tags = self.request.GET.getlist('tags')
+            queryset = Recipe.objects.all()
+            or_conditions = Q()
+            for tag in tags:
+                or_conditions |= Q(tags__slug=tag)
+            queryset = queryset.filter(or_conditions)
+
+        return queryset
+
+    def get_author(self, queryset, name, value):
+        author_id = self.request.query_params.get('author')
+        queryset = Recipe.objects.all()
+
+        if author_id:
+            queryset = queryset.filter(author__id=author_id)
+
         return queryset
 
     def get_is_favorited(self, queryset, name, value):
@@ -33,6 +36,7 @@ class RecipeFilters(django_filters.FilterSet):
         if user.is_authenticated:
             if value == '1':
                 return queryset.filter(favorite__user=user)
+
         return queryset
 
     def get_is_in_shopping_cart(self, queryset, name, value):
@@ -40,6 +44,7 @@ class RecipeFilters(django_filters.FilterSet):
         if user.is_authenticated:
             if value == '1':
                 return queryset.filter(shopping_cart__user=user)
+
         return queryset
 
     class Meta:
