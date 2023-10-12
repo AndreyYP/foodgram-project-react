@@ -1,5 +1,6 @@
 import django_filters
 from django.db.models import Q
+from rest_framework.exceptions import PermissionDenied, NotAuthenticated
 
 from recipes.models import Recipe
 
@@ -34,14 +35,18 @@ class RecipeFilters(django_filters.FilterSet):
         if user.is_authenticated:
             if value == '1':
                 return queryset.filter(favorite__user=user)
-        return queryset.none()
+        elif value == '1':
+            raise NotAuthenticated()
+        return queryset
 
     def get_is_in_shopping_cart(self, queryset, name, value):
         user = self.request.user
         if user.is_authenticated:
             if value == '1':
                 return queryset.filter(shopping_cart__user=user)
-        return queryset.none()
+        elif value == '1':
+            raise NotAuthenticated()
+        return queryset
 
     class Meta:
         model = Recipe
