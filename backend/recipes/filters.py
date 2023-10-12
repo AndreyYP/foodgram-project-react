@@ -1,6 +1,6 @@
 import django_filters
 from django.db.models import Q
-from rest_framework.exceptions import PermissionDenied, NotAuthenticated
+from rest_framework.exceptions import NotAuthenticated
 
 from recipes.models import Recipe
 

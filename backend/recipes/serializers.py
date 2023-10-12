@@ -3,7 +3,6 @@ import base64
 from django.db import transaction
 from rest_framework import serializers
 from django.core.files.base import ContentFile
-from rest_framework.exceptions import NotAuthenticated
 
 from recipes.models import Recipe, Tag, Ingredient, RecipeIngredient
 from users.serializers import UsersSerializer
@@ -61,7 +60,8 @@ class RecipeSerializer(serializers.ModelSerializer):
     def validate(self, data):
         ingredients_data = data.get('ingredients')
         if not ingredients_data or len(ingredients_data) == 0:
-            raise serializers.ValidationError("Нельзя создать рецепт без ингредиента")
+            raise serializers.ValidationError(
+                "Нельзя создать рецепт без ингредиента")
         return data
 
     def get_ingredients(self, recipe, ingredients):
