@@ -131,6 +131,5 @@ dmypy.json
 # .idea
 .idea
 
-.media
-.recipes_images
-.migrations
+backend/media/recipes_images/*
+**/migrations/

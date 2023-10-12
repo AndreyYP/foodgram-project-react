@@ -58,6 +58,12 @@ class RecipeSerializer(serializers.ModelSerializer):
     ingredients = AddIngredientSerializer(many=True)
     image = Base64ImageField()
 
+    def validate(self, data):
+        ingredients_data = data.get('ingredients')
+        if not ingredients_data or len(ingredients_data) == 0:
+            raise serializers.ValidationError("Нельзя создать рецепт без ингредиента")
+        return data
+
     def get_ingredients(self, recipe, ingredients):
         RecipeIngredient.objects.bulk_create(
             RecipeIngredient(
