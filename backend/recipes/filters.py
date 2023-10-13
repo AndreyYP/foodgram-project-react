@@ -15,10 +15,7 @@ class RecipeFilters(django_filters.FilterSet):
     def filter_tags(self, queryset, name, value):
         if value:
             tags = self.request.GET.getlist('tags')
-            or_conditions = Q()
-            for tag in tags:
-                or_conditions |= Q(tags__slug=tag)
-            queryset = queryset.filter(or_conditions)
+            queryset = queryset.filter(tags__slug__in=tags).distinct()
 
         return queryset
 
@@ -42,6 +39,7 @@ class RecipeFilters(django_filters.FilterSet):
                 raise NotAuthenticated()
             else:
                 return queryset
+
         return queryset
 
     def get_is_in_shopping_cart(self, queryset, name, value):
@@ -56,6 +54,7 @@ class RecipeFilters(django_filters.FilterSet):
                 raise NotAuthenticated()
             else:
                 return queryset
+
         return queryset
 
     class Meta:
